@@ -57,7 +57,7 @@ const MobileNav = () => {
         <div className="fixed bottom-3 left-1/2 transform -translate-x-1/2 bg-transparent text-white p-3 w-60">
           <div className="text-center text-base">
             <div className="p-2 bg-gray-300 dark:bg-zinc-700/60 rounded-lg -ml-10">
-              <p className="font-bold text-lg dark:text-white text-black">Prabhu Kiran Konda</p>
+              <p className="font-bold text-lg dark:text-white text-black">Nihei Seiji</p>
             </div>
           </div>
         </div>

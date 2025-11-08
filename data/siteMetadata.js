@@ -1,8 +1,8 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Prabhu's Blog",
-  author: 'Prabhu Kiran Konda',
-  headerTitle: "Prabhu's Blog",
+  title: "Nihei Seijiのブログ",
+  author: 'Nihei Seiji',
+  headerTitle: "Nihei Seijiのブログ",
   description: 'Exploring Tech and more',
   language: 'en-us',
   theme: 'dark', // system, dark or light
