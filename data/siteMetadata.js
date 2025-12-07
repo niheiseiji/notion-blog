@@ -1,10 +1,10 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Nihei Seijiのブログ",
+  title: "Nihei Seiji",
   author: 'Nihei Seiji',
-  headerTitle: "Nihei Seijiのブログ",
-  description: 'Exploring Tech and more',
-  language: 'en-us',
+  headerTitle: "Nihei Seiji",
+  description: '仕事や仕事以外のあれこれについて書いています。',
+  language: 'ja-JP',
   theme: 'dark', // system, dark or light
   siteUrl: 'https://prabhukirankonda.vercel.app',
   siteRepo: 'https://github.com/PrabhuKiran8790/prabhukirankonda',
@@ -14,7 +14,7 @@ const siteMetadata = {
   github: 'https://github.com/PrabhuKiran8790',
   twitter: 'https://twitter.com/prabhukirantwt',
   linkedin: 'https://www.linkedin.com/in/prabhukirankonda',
-  locale: 'en-US',
+  locale: 'ja-JP',
   socialLinks: {
     github: 'https://www.github.com/prabhukiran8790',
     linkedin: 'https://www.linkedin.com/in/prabhukirankonda',

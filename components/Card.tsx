@@ -35,6 +35,16 @@ const Card = ({ title, description, imgSrc, href, techStack }) => {
           <div className="flex flex-wrap gap-2 mb-5">
             {techStack.map((t) => {
               const Icon = DevIcons[t]
+              if (!Icon) {
+                return (
+                  <div
+                    key={t}
+                    className="flex items-center justify-center gap-2 text-white rounded-md border :border-white bg-black p-1 px-2 font-bold text-sm md:text-base"
+                  >
+                    {t}
+                  </div>
+                )
+              }
               return (
                 <div
                   key={t}

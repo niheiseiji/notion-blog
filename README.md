@@ -1,7 +1,19 @@
-## Personal Blog
+# NiheiのNotion blog
+## set up
+1. Node.js 18 以上がインストールされていることを確認します。
+2. 依存関係をインストールします。
 
+```bash
+npm install
+```
 
-I recently ported this to sveltekit. here is the react and nextjs version : [https://v1-prabhukirankonda.vercel.app](https://v1-prabhukirankonda.vercel.app/)
+3. 環境変数を `.env.local` に設定します。
+   - `NOTION_TOKEN`
+   - `NOTION_DATABASE_ID`
+4. 開発サーバーを起動します。
 
+```bash
+npm run dev
+```
 
-for sveltekit version : [https://prabhukirankonda.vercel.app](https://prabhukirankonda.vercel.app/) -- [Repo](https://github.com/PrabhuKiran8790/prabhukirankonda.vercel.app/tree/main)
+5. ブラウザで `http://localhost:3000` を開き、動作を確認します。

@@ -15,7 +15,7 @@ export default function Home({ posts }) {
           <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
             <span className="text-sky-500 dark:text-teal-400">Nihei Seiji</span>
           </h1>
-          <p>ようこそ。 ここでは私の技術的な知識や趣味について書いています。</p>
+          <p>ようこそ。ここでは私の仕事やそれ以外のあれこれについて書いています。</p>
           <Link
             href="/about"
             className="bg-gradient-to-r from-green-400 to-blue-500 hover:from-pink-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded mt-4 inline-block"
