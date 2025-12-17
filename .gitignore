@@ -53,3 +53,6 @@ yarn-error.log*
 
 # Contentlayer
 .contentlayer
+
+# Local development
+notion-blog-poc/
