@@ -16,12 +16,8 @@ export default function Projects() {
         </div>
         <div className="py-12">
           <div className="flex flex-col items-center justify-center">
-            <p className="text-xl text-gray-600 dark:text-gray-400">
-              準備中です
-            </p>
-            <p className="mt-4 text-gray-500 dark:text-gray-500">
-              近日公開予定です
-            </p>
+            <p className="text-xl text-gray-600 dark:text-gray-400">準備中です</p>
+            <p className="mt-4 text-gray-500 dark:text-gray-500">近日公開予定です</p>
           </div>
         </div>
       </div>

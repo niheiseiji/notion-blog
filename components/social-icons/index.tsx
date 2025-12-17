@@ -18,8 +18,7 @@ type SocialIconProps = {
 }
 
 const SocialIcon = ({ kind, href, size = 8 }: SocialIconProps) => {
-  if (!href || (kind === 'mail' && !/^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/.test(href)))
-    return null
+  if (!href || (kind === 'mail' && !/^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/.test(href))) return null
 
   const SocialSvg = components[kind]
 
