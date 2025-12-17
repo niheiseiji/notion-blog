@@ -1,0 +1,76 @@
+---
+title: "Notionで記事を書いて自分のブログに自動で公開したい(2日目)"
+date: '2025-10-25'
+tags: ['Notion', 'Notion API']
+lastmod: '2025-12-17'
+draft: false
+authors: ['nihei-seiji']
+layout: 'PostSimple'
+---
+
+
+# 前回の宿題
+
+- （これやる）画像がプリサインドURLで期限付きなのでダウンロードして自前で持っておく必要がありそう
+- （次回以降）そもそも投稿先のブログがない（致命的）
+- （次回以降）Github Actions周り整備していい感じにCI/CDしたい
+
+# 画像がプリサインドURLで期限付きなのでダウンロードして自前で持っておく
+
+
+Notionに画像を貼り付けて、NotionAPIで記事を取得するとき、画像はNotionのS3に保管されておりプリサインドURLでアクセスしている。このまま自前のブログアップロードすると期限切れで見れなくなるので対策する。
+
+
+今回、画像ストレージはCloudfrare R2を使う。Cloudfrare R2については特に難しい設定をするわけではないので詳しい手順は割愛する。UIに沿って操作すればできる範囲。作業概要としてはこんな感じ
+
+
+Cloudfrare R2でバケットを作る
+
+
+↓
+
+
+バケットのPublic Development URLを取得する（デフォで非公開になってるので公開urlを取得する）
+
+
+↓
+
+
+バケットのAPIキー、トークンを取得してAWS CLIで扱えるようにセットアップ
+
+
+↓
+
+
+準備完了
+
+
+バケットを作った
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974076825_6ggwzzpoh5.png)
+
+
+## **画像リホスティングの処理フロー（Notion → R2/CDN）**
+
+- **Markdown生成**: Notionから取得したブロックをMarkdown文字列に組み立てる（parent と children を連結）。
+- **画像リンク検出**: Markdown内の ![...](URL) を走査し、images.notion.so/secure.notion-static.com/prod-files-secure.s3... 等のNotion由来URLのみを対象にする。
+- **画像ダウンロード**: 対象URLのバイナリを取得。
+- **拡張子決定**: Content-Type を優先し、なければURLから推測（例: .png, .jpg, .webp など）。
+- **R2へアップロード**: notion-images/`<生成ファイル名>`.`<拡張子>` で配置し、Content-Type を付与して保存。
+- **CDNパスへ置換**: 生成した CDN_BASE_URL/notion-images/... に、Markdown内の元URLを全箇所一括置換。
+- **出力**: 置換済みMarkdownを article.md として保存。
+
+こんな感じで画像のリンクがr2になったのでOK
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974077472_h4pk2eqwnyl.png)
+
+
+# 宿題
+
+- （次回以降）そもそも投稿先のブログがない
+- （次回以降）Github Actions周り整備していい感じにCI/CDしたい
+
+**今日はここまで！**
+

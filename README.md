@@ -17,3 +17,21 @@ npm run dev
 ```
 
 5. ブラウザで `http://localhost:3000` を開き、動作を確認します。
+
+## Notion記事の同期
+
+Notionデータベースから`publish_status=ready`の記事を取得し、`data/blog/`にMDXファイルとして保存します。
+
+```bash
+npm run deploy
+```
+
+### 必要な環境変数
+
+- `NOTION_TOKEN` - Notion APIトークン
+- `NOTION_DATABASE_ID` - NotionデータベースID
+- `R2_ENDPOINT` - Cloudflare R2エンドポイント
+- `R2_ACCESS_KEY_ID` - R2アクセスキー
+- `R2_SECRET_ACCESS_KEY` - R2シークレットキー
+- `R2_BUCKET` - R2バケット名
+- `CDN_BASE_URL` - 画像CDNのベースURL

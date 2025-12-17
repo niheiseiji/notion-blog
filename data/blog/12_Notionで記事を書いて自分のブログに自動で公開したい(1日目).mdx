@@ -1,0 +1,585 @@
+---
+title: "Notionで記事を書いて自分のブログに自動で公開したい(1日目)"
+date: '2025-10-25'
+tags: ['Notion', 'Notion API']
+lastmod: '2025-12-17'
+draft: false
+authors: ['nihei-seiji']
+layout: 'PostSimple'
+summary: "Notionをインターフェースにしたブログの実装。"
+---
+
+
+# なにがしたいのか
+
+
+NotionのUIはすばらしくブログ記事を書くのにピッタリである。しかしブログとして運用するためには独自ドメインによる公開設定で課金が必要となる。
+
+
+お金がもったいないので全部無料でブログ公開をできる仕組みを構築していく。ざっくりしたイメージはこんな感じ。
+
+
+![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974072010_zj1wof1yq78.jpg)
+
+
+# Notion執筆記事をマークダウンにするまで
+
+
+## Notion APIを叩いて記事データを取得してみる
+
+
+[bookmark](https://developers.notion.com/reference)
+
+
+Notionは外部アプリケーション接続用にIntegrationというをモジュールを作る必要がある。今回は「private API integration」を新たに作った。
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974073322_xg82fyfqtjd.png)
+
+
+とりあえずこんなDBを作ってみた
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974073856_catqy2pltzm.png)
+
+
+テスト用の個別のページはタイトルとその他プロパティ、本文で構成してみた。本文にはいくつかの種類のタグを用意してみた。
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974074262_jdc5yibboi.png)
+
+
+さっそく取得APIを叩いてみる。実際にはフィルタを調整してpublish_status=readyの記事だけ取得するようにすれば投稿準備ができた記事をフィルタできる。
+
+
+```javascript
+$ curl --request POST \
+  --url "
+https://api.notion.com/v1/databases/297cc5b38b458083953ceffa0919ae66/query
+" \
+  --header "Authorization: Bearer ****************" \
+  --header "Notion-Version: 2022-06-28" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "filter": {
+      "property": "publish_status",
+      "select": {
+        "equals": "draft"
+      }
+    }
+  }'
+```
+
+
+response
+
+
+```javascript
+{
+	"object": "list",
+	"results": [
+		{
+			"object": "page",
+			"id": "297cc5b3-8b45-804a-9ddc-c6eca722653c",
+			"created_time": "2025-10-25T14:10:00.000Z",
+			"last_edited_time": "2025-10-25T14:43:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"cover": null,
+			"icon": null,
+			"parent": {
+				"type": "database_id",
+				"database_id": "297cc5b3-8b45-8083-953c-effa0919ae66"
+			},
+			"archived": false,
+			"in_trash": false,
+			"is_locked": false,
+			"properties": {
+				"publish_status": {
+					"id": "i%3Fa_",
+					"type": "select",
+					"select": {
+						"id": "aeab7443-d734-481a-9985-77b77aebe5ca",
+						"name": "draft",
+						"color": "default"
+					}
+				},
+				"tags": {
+					"id": "jh%5BU",
+					"type": "multi_select",
+					"multi_select": [
+						{
+							"id": "73b075ac-61fc-4a4a-982d-879457150cbe",
+							"name": "Notion",
+							"color": "yellow"
+						},
+						{
+							"id": "8d2614d7-d871-4116-92ec-c891566c7c12",
+							"name": "Github Actions",
+							"color": "purple"
+						},
+						{
+							"id": "cc51fa73-34d0-4514-a90e-326e6d15043a",
+							"name": "Github",
+							"color": "gray"
+						},
+						{
+							"id": "3cdfe9bf-3afe-4936-a594-fedbbf26eb70",
+							"name": "Vercel",
+							"color": "blue"
+						},
+						{
+							"id": "e56258ef-57bb-4dfd-b1f3-87f6aae1baff",
+							"name": "Notion API",
+							"color": "default"
+						}
+					]
+				},
+				"title": {
+					"id": "title",
+					"type": "title",
+					"title": [
+						{
+							"type": "text",
+							"text": {
+								"content": "Notionで記事を書いて自分のブログに自動で公開したい",
+								"link": null
+							},
+							"annotations": {
+								"bold": false,
+								"italic": false,
+								"strikethrough": false,
+								"underline": false,
+								"code": false,
+								"color": "default"
+							},
+							"plain_text": "Notionで記事を書いて自分のブログに自動で公開したい",
+							"href": null
+						}
+					]
+				}
+			},
+			"url": "https://www.notion.so/Notion-297cc5b38b45804a9ddcc6eca722653c",
+			"public_url": null
+		},
+		{
+			"object": "page",
+			"id": "297cc5b3-8b45-809b-b302-ca4fed592a1f",
+			"created_time": "2025-10-25T14:36:00.000Z",
+			"last_edited_time": "2025-10-25T14:37:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"cover": null,
+			"icon": null,
+			"parent": {
+				"type": "database_id",
+				"database_id": "297cc5b3-8b45-8083-953c-effa0919ae66"
+			},
+			"archived": false,
+			"in_trash": false,
+			"is_locked": false,
+			"properties": {
+				"publish_status": {
+					"id": "i%3Fa_",
+					"type": "select",
+					"select": {
+						"id": "aeab7443-d734-481a-9985-77b77aebe5ca",
+						"name": "draft",
+						"color": "default"
+					}
+				},
+				"tags": {
+					"id": "jh%5BU",
+					"type": "multi_select",
+					"multi_select": [
+						{
+							"id": "0ab44975-2165-46da-b255-adfc4fd84f4b",
+							"name": "テスト",
+							"color": "gray"
+						}
+					]
+				},
+				"title": {
+					"id": "title",
+					"type": "title",
+					"title": [
+						{
+							"type": "text",
+							"text": {
+								"content": "テストページ",
+								"link": null
+							},
+							"annotations": {
+								"bold": false,
+								"italic": false,
+								"strikethrough": false,
+								"underline": false,
+								"code": false,
+								"color": "default"
+							},
+							"plain_text": "テストページ",
+							"href": null
+						}
+					]
+				}
+			},
+			"url": "https://www.notion.so/297cc5b38b45809bb302ca4fed592a1f",
+			"public_url": null
+		}
+	],
+	"next_cursor": null,
+	"has_more": false,
+	"type": "page_or_database",
+	"page_or_database": {},
+	"request_id": "e9671223-460e-451d-8ef0-2aac0148d7b2"
+}
+```
+
+
+ページ詳細も取得してみる
+
+
+```javascript
+nihei@nihei-Precision-3490:~$ curl --request GET \
+  --url "
+https://api.notion.com/v1/blocks/297cc5b38b45809bb302ca4fed592a1f/children
+" \
+  --header "Authorization: Bearer ****************" \
+  --header "Notion-Version: 2022-06-28"
+```
+
+
+response
+
+
+```javascript
+{
+	"object": "list",
+	"results": [
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-80b8-a3b5-c63720056042",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T14:36:00.000Z",
+			"last_edited_time": "2025-10-25T14:37:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": false,
+			"archived": false,
+			"in_trash": false,
+			"type": "heading_1",
+			"heading_1": {
+				"rich_text": [
+					{
+						"type": "text",
+						"text": {
+							"content": "h1テキスト",
+							"link": null
+						},
+						"annotations": {
+							"bold": false,
+							"italic": false,
+							"strikethrough": false,
+							"underline": false,
+							"code": false,
+							"color": "default"
+						},
+						"plain_text": "h1テキスト",
+						"href": null
+					}
+				],
+				"is_toggleable": false,
+				"color": "default"
+			}
+		},
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-8054-8ba8-dd17dd718820",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T14:37:00.000Z",
+			"last_edited_time": "2025-10-25T14:37:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": false,
+			"archived": false,
+			"in_trash": false,
+			"type": "heading_2",
+			"heading_2": {
+				"rich_text": [
+					{
+						"type": "text",
+						"text": {
+							"content": "h2テキスト",
+							"link": null
+						},
+						"annotations": {
+							"bold": false,
+							"italic": false,
+							"strikethrough": false,
+							"underline": false,
+							"code": false,
+							"color": "default"
+						},
+						"plain_text": "h2テキスト",
+						"href": null
+					}
+				],
+				"is_toggleable": false,
+				"color": "default"
+			}
+		},
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-800e-ba5e-cf80b130f7ad",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T14:37:00.000Z",
+			"last_edited_time": "2025-10-25T14:37:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": false,
+			"archived": false,
+			"in_trash": false,
+			"type": "paragraph",
+			"paragraph": {
+				"rich_text": [
+					{
+						"type": "text",
+						"text": {
+							"content": "本文テキスト",
+							"link": null
+						},
+						"annotations": {
+							"bold": false,
+							"italic": false,
+							"strikethrough": false,
+							"underline": false,
+							"code": false,
+							"color": "default"
+						},
+						"plain_text": "本文テキスト",
+						"href": null
+					}
+				],
+				"color": "default"
+			}
+		},
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-8002-8ddf-e5cc4d53a9d1",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T14:36:00.000Z",
+			"last_edited_time": "2025-10-25T14:36:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": false,
+			"archived": false,
+			"in_trash": false,
+			"type": "code",
+			"code": {
+				"caption": [],
+				"rich_text": [
+					{
+						"type": "text",
+						"text": {
+							"content": "<script>test</script>",
+							"link": null
+						},
+						"annotations": {
+							"bold": false,
+							"italic": false,
+							"strikethrough": false,
+							"underline": false,
+							"code": false,
+							"color": "default"
+						},
+						"plain_text": "<script>test</script>",
+						"href": null
+					}
+				],
+				"language": "javascript"
+			}
+		},
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-8017-8fdf-de9b18b78aa1",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T14:36:00.000Z",
+			"last_edited_time": "2025-10-25T14:36:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": true,
+			"archived": false,
+			"in_trash": false,
+			"type": "table",
+			"table": {
+				"table_width": 3,
+				"has_column_header": false,
+				"has_row_header": false
+			}
+		},
+		{
+			"object": "block",
+			"id": "297cc5b3-8b45-8009-ab1f-c981799f10cc",
+			"parent": {
+				"type": "page_id",
+				"page_id": "297cc5b3-8b45-809b-b302-ca4fed592a1f"
+			},
+			"created_time": "2025-10-25T15:23:00.000Z",
+			"last_edited_time": "2025-10-25T15:23:00.000Z",
+			"created_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"last_edited_by": {
+				"object": "user",
+				"id": "f1f24320-568e-4209-a0c6-3ed7434d803e"
+			},
+			"has_children": false,
+			"archived": false,
+			"in_trash": false,
+			"type": "image",
+			"image": {
+				"caption": [],
+				"type": "file",
+				"file": {
+					"url": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6b2b1d1f-279d-4138-a76b-c89c7db271ea/815cacba-2816-49eb-834b-4051146ed85a/cat-type_00.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB46652N3BMGL%2F20251025%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20251025T152356Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjELv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLXdlc3QtMiJIMEYCIQD4dWMF1QcLqKeDiGSISPCcbkSq0eFWNrbWIfPmXGMMyAIhAN0dUgDIZ%2FL44KIwFF5QLZf16qITmTFAZIa7vwFyQEE1Kv8DCHQQABoMNjM3NDIzMTgzODA1IgzwJUm7LaTRqIIO%2FXkq3APTkqgSNtFZBOD3vBJoCcEsEYkFuh5nTuXcUubNYF%2FCdfDwh8bKDSOnP%2B1vrkcnVIBNU%2BDlM9c5Q26LmHmLW2PagfsPNtjPXKYPOyCi8AiIVTO65EsRc69lSXhiIEH795VpxEn%2Bof6%2FcWqSzUzytVPhe%2BIYnxBYqDyilQhQVnZFuYPRS2rNtCOoGOVsHnsToXfa1RCC2OGsDpLS%2FJ4ixflMp9Jo7gAu%2FkomrDhVlyms8L23bCN6vQvKsT7%2BXCtXoTUa%2Fh%2F1jukP3Sxyy8t0s%2FoBt7dKz1ItM%2FJkrpR5LH1z1E8X718fzaKUrpbjGNGcn3p6yCnC05k9BUs1UNiEsAwkihxx15nlpDJSMzsT9vteumD%2BEL5CI95Kl3X9aj4gc8L74hd0L5uI3y%2BKNRuIrxXj38j%2BttgzO7haYu314FuZEDLNmqS5mlQZvExqr3c3pJwqcNu2L82DtPAau3Ni%2Bc2up7DRDJ1N2wxrVhYVtxXSzgVPExjGBt%2F6ZcgAhcMWPtxVwgbRkI%2FBlgXCcMC6LM5mQ%2Fu8I0fWfFryo1FOqysSxJzJUx9jZg3VRyVn7XmfiUA4Ok1TbICeu57XW4EmOb3O1ErzkKeEEmlEoz6TTzbDLQde%2FJgug94mzYwt3jDh1%2FLHBjqkAZNO9re8nz6MK2Wx8AmKfpTj%2FxcYGFxXVp79FFf1vWOmSVB%2FnH7nqpm3HsDomSi04eGGSxjf1W5HY6P2AXCwTMwKhTrVShnCPkKUSvQU0stzOjNX1rB9ny4KagEbNA6647ncgooST4VzVbdXbiV1CGJL3w9oXG943oFVUanEE485Ef89wKUfgK%2FyLjSQLk987oxnKnubWGLAQWtmKDwbf5Md87WW&X-Amz-Signature=2525bbcab0305d1a45cc71dfba4111d24ed14b0828456e92179083f964ffdf45&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+					"expiry_time": "2025-10-25T16:23:56.644Z"
+				}
+			}
+		}
+	],
+	"next_cursor": null,
+	"has_more": false,
+	"type": "block",
+	"block": {},
+	"request_id": "143f1db9-7169-4537-a346-b9c38a6ab50b"
+}
+```
+
+
+## 取得した記事をブログ公開可能なmdファイルに整形する
+
+
+必要なパッケージをインストールして
+
+
+```javascript
+npm install @notionhq/client notion-to-md dotenv
+```
+
+
+最低限の実装はこれだけ
+
+
+```javascript
+import { Client } from "@notionhq/client";
+import { NotionToMarkdown } from "notion-to-md";
+import fs from "fs";
+import "dotenv/config";
+
+// 1️⃣ Notion クライアント初期化
+const notion = new Client({
+  auth: process.env.NOTION_TOKEN,
+});
+
+// 2️⃣ notion-to-md インスタンス作成
+const n2m = new NotionToMarkdown({ notionClient: notion });
+
+// 3️⃣ ページID設定
+const pageId = "297cc5b38b45809bb302ca4fed592a1f"; // ← NotionのテストページID
+
+// 4️⃣ ページ→Markdown変換
+(async () => {
+  try {
+    const mdBlocks = await n2m.pageToMarkdown(pageId);
+    const mdString = n2m.toMarkdownString(mdBlocks);
+
+    fs.writeFileSync("article.md", mdString.parent);
+    console.log("✅ article.md が生成されました！");
+  } catch (error) {
+    console.error("❌ 変換失敗:", error);
+  }
+})();
+```
+
+
+実行してみる
+
+
+```javascript
+$ node index.mjs
+✅ article.md が生成されました！
+```
+
+
+ちゃんとmarkdownになっとる
+
+
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974075034_bivmcnczm9s.png)
+
+
+# 宿題事項
+
+- 画像がプリサインドURLで期限付きなのでダウンロードして自前で持っておく必要がありそう
+- そもそも投稿先のブログがない（致命的）
+- Github Actions周り整備していい感じにCI/CDしたい
+
+**今日はここまで！**
+
