@@ -1,25 +1,25 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: "Nihei Seiji",
+  title: 'Nihei Tech Blog',
   author: 'Nihei Seiji',
-  headerTitle: "Nihei Seiji",
+  headerTitle: 'Nihei Tech Blog',
   description: '仕事や仕事以外のあれこれについて書いています。',
   language: 'ja-JP',
   theme: 'dark', // system, dark or light
-  siteUrl: 'https://prabhukirankonda.vercel.app',
-  siteRepo: 'https://github.com/PrabhuKiran8790/prabhukirankonda',
+  siteUrl: 'https://niheitechblog.vercel.app',
+  siteRepo: 'https://github.com/NiheiSeiji/niheitechblog',
   siteLogo: '/static/images/logo.png',
   socialBanner: '/static/images/twitter-card.png',
-  email: 'prabhukiran426@gmail.com',
-  github: 'https://github.com/PrabhuKiran8790',
-  twitter: 'https://twitter.com/prabhukirantwt',
-  linkedin: 'https://www.linkedin.com/in/prabhukirankonda',
+  email: 'nihei.seiji@gmail.com',
+  github: 'https://github.com/NiheiSeiji',
+  twitter: 'https://twitter.com/nihei_seiji',
+  linkedin: 'https://www.linkedin.com/in/nihei-seiji',
   locale: 'ja-JP',
   socialLinks: {
-    github: 'https://www.github.com/prabhukiran8790',
-    linkedin: 'https://www.linkedin.com/in/prabhukirankonda',
-    twitter: 'https://twitter.com/prabhukirantwt',
-    mail: 'mailto:prabhukiran426@gmail.com',
+    github: 'https://www.github.com/NiheiSeiji',
+    linkedin: 'https://www.linkedin.com/in/nihei-seiji',
+    twitter: 'https://twitter.com/nihei_seiji',
+    mail: 'mailto:nihei.seiji@gmail.com',
   },
   analytics: {
     // If you want to use an analytics provider you have to add it to the
