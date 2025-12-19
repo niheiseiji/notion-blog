@@ -1,5 +1,5 @@
 ---
-title: "Notionで記事を書いて自分のブログに自動で公開したい(2日目)"
+title: 'Notionで記事を書いて自分のブログに自動で公開したい(2日目)'
 date: '2025-10-25'
 tags: ['Notion', 'Notion API']
 lastmod: '2025-12-17'
@@ -7,7 +7,6 @@ draft: false
 authors: ['nihei-seiji']
 layout: 'PostSimple'
 ---
-
 
 # 前回の宿題
 
@@ -17,39 +16,27 @@ layout: 'PostSimple'
 
 # 画像がプリサインドURLで期限付きなのでダウンロードして自前で持っておく
 
-
 Notionに画像を貼り付けて、NotionAPIで記事を取得するとき、画像はNotionのS3に保管されておりプリサインドURLでアクセスしている。このまま自前のブログアップロードすると期限切れで見れなくなるので対策する。
-
 
 今回、画像ストレージはCloudfrare R2を使う。Cloudfrare R2については特に難しい設定をするわけではないので詳しい手順は割愛する。UIに沿って操作すればできる範囲。作業概要としてはこんな感じ
 
-
 Cloudfrare R2でバケットを作る
 
-
 ↓
-
 
 バケットのPublic Development URLを取得する（デフォで非公開になってるので公開urlを取得する）
 
-
 ↓
-
 
 バケットのAPIキー、トークンを取得してAWS CLIで扱えるようにセットアップ
 
-
 ↓
-
 
 準備完了
 
-
 バケットを作った
 
-
 ![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974076825_6ggwzzpoh5.png)
-
 
 ## **画像リホスティングの処理フロー（Notion → R2/CDN）**
 
@@ -63,9 +50,7 @@ Cloudfrare R2でバケットを作る
 
 こんな感じで画像のリンクがr2になったのでOK
 
-
 ![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974077472_h4pk2eqwnyl.png)
-
 
 # 宿題
 
@@ -73,4 +58,3 @@ Cloudfrare R2でバケットを作る
 - （次回以降）Github Actions周り整備していい感じにCI/CDしたい
 
 **今日はここまで！**
-

@@ -291,13 +291,13 @@ async function syncNotionPosts() {
     const mdxContent = generateFrontMatter(post, escapedMd);
 
     const articleId = post.properties?.ID?.unique_id?.number ?? "";
-    const fileName = `${articleId}_${title}.mdx`;
+    const fileName = `${articleId}.mdx`;
     const outputPath = path.join(outputDir, fileName);
 
     // 同じIDの既存ファイルから画像を削除し、ファイルも削除
     const existingFiles = fs.readdirSync(outputDir);
     const oldFiles = existingFiles.filter(
-      (file) => file.startsWith(`${articleId}_`) && file.endsWith(".mdx")
+      (file) => (file === `${articleId}.mdx` || file.startsWith(`${articleId}_`)) && file.endsWith(".mdx")
     );
     for (const oldFile of oldFiles) {
       const oldFilePath = path.join(outputDir, oldFile);
@@ -352,7 +352,7 @@ async function deleteNotionPosts() {
     if (fs.existsSync(outputDir)) {
       const existingFiles = fs.readdirSync(outputDir);
       const targetFiles = existingFiles.filter(
-        (file) => file.startsWith(`${articleId}_`) && file.endsWith(".mdx")
+        (file) => (file === `${articleId}.mdx` || file.startsWith(`${articleId}_`)) && file.endsWith(".mdx")
       );
 
       for (const targetFile of targetFiles) {
