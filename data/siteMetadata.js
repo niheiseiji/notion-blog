@@ -7,19 +7,17 @@ const siteMetadata = {
   language: 'ja-JP',
   theme: 'dark', // system, dark or light
   siteUrl: 'https://niheitechblog.vercel.app',
-  siteRepo: 'https://github.com/NiheiSeiji/niheitechblog',
-  siteLogo: '/static/images/logo.png',
+  siteRepo: 'https://github.com/niheiseiji/notion-blog',
+  siteLogo: '/static/images/dots/mousu1.gif',
   socialBanner: '/static/images/twitter-card.png',
-  email: 'nihei.seiji@gmail.com',
-  github: 'https://github.com/NiheiSeiji',
-  twitter: 'https://twitter.com/nihei_seiji',
-  linkedin: 'https://www.linkedin.com/in/nihei-seiji',
+  email: 'nihei.seiji.office@gmail.com',
+  github: 'https://github.com/niheiseiji',
+  linkedin: 'https://www.linkedin.com/in/niheiseiji/',
   locale: 'ja-JP',
   socialLinks: {
-    github: 'https://www.github.com/NiheiSeiji',
-    linkedin: 'https://www.linkedin.com/in/nihei-seiji',
-    twitter: 'https://twitter.com/nihei_seiji',
-    mail: 'mailto:nihei.seiji@gmail.com',
+    github: 'https://github.com/niheiseiji',
+    linkedin: 'https://www.linkedin.com/in/niheiseiji/',
+    mail: 'mailto:nihei.seiji.office@gmail.com',
   },
   analytics: {
     // If you want to use an analytics provider you have to add it to the

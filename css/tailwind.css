@@ -7,7 +7,7 @@ p {
 }
 
 img {
-  @apply rounded-lg shadow-xl dark:shadow-none;
+  @apply rounded-lg;
 }
 
 code {
@@ -20,7 +20,7 @@ li {
 }
 
 ::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 pre {
