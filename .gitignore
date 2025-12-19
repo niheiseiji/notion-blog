@@ -54,5 +54,7 @@ yarn-error.log*
 # Contentlayer
 .contentlayer
 
-# Local development
-notion-blog-poc/
+# notion-blog-poc (exclude sensitive/temp files)
+notion-blog-poc/__keys
+notion-blog-poc/node_modules/
+notion-blog-poc/tmp/
