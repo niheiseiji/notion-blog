@@ -12,7 +12,7 @@ export default function Home({ posts }) {
     <>
       <div className="flex items-center justify-between space-y-4 mt-7">
         <div className="space-y-4">
-          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
+          <h1 className="text-2xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl sm:leading-10 md:text-5xl md:leading-14">
             <span className="text-sky-500 dark:text-teal-400">Nihei Seiji</span>
           </h1>
           <p>ようこそ。ここでは私の仕事やそれ以外のあれこれについて書いています。</p>
@@ -37,12 +37,12 @@ export default function Home({ posts }) {
           alt="avatar"
           width={200}
           height={200}
-          className="h-50 w-50 rounded-full hidden md:block shadow-lg shadow-gray-400"
+          className="h-50 w-50 rounded-full hidden md:block"
         />
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         <div className="space-y-0 mt-3 md:mt-0 pb-2 pt-6 md:space-y-5">
-          <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
+          <h1 className="text-2xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl sm:leading-10 md:text-5xl md:leading-14">
             Latest
           </h1>
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
