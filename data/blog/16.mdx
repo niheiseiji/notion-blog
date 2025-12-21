@@ -2,12 +2,126 @@
 title: 'Notionで記事を書いて自分のブログに自動で公開したい(3日目)'
 date: '2025-10-27'
 tags: ['Notion', 'Notion API']
-lastmod: '2025-12-19'
+lastmod: '2025-12-20'
 draft: false
 authors: ['nihei-seiji']
 layout: 'PostSimple'
+summary: 'Notion記事を自動同期し、無料で公開できるブログ基盤を構築した記録'
 ---
 
-参考
+# 前回の宿題
 
-[bookmark](https://v1-prabhukirankonda.vercel.app/)
+- （これやる）そもそも投稿先のブログがない
+- （次回以降）Github Actions周り整備していい感じにCI/CDしたい
+
+## ブログのUIどうするか問題
+
+Notion APIで記事を取得してMarkdownに変換、画像もR2にホスティング完了。肝心のブログ本体を作っていく。今回はテンプレートを探してフォークすることにした。
+
+このブログを読んでいる人はこれ自体が成果物です、、、
+
+## Prabhu's Blogをフォークする
+
+いろいろ探した結果、[Prabhu's Blog](https://v1-prabhukirankonda.vercel.app/) というNext.js製のブログテンプレートを発見。見た目がシンプルでモダン、技術ブログにちょうどいい感じ。リポジトリをフォークして、カスタマイズしていく。
+
+## フォーク後にやったカスタマイズ
+
+### 1. サイト情報の変更
+
+まずは基本的な情報を自分用に書き換える。`siteMetadata.js`みたいな設定ファイルがあるので、そこをいじる。
+
+- サイトタイトル
+- 説明文
+- 著者情報
+- SNSリンク
+- OGP画像
+
+この辺を変えるだけでも、だいぶ自分のブログっぽくなる
+
+## Cloudflare + Notion + GitHub Actionsで自動デプロイ
+
+さて、ここからが本題。Notionで記事を書いたら自動でブログに反映される仕組みを作っていく。
+
+### 全体の構成
+
+```plain text
+Notion（記事を書く）
+    ↓ GitHub Actions（定期実行）
+    ↓ Notion API で記事取得
+    ↓ Markdown に変換
+    ↓ 画像を R2 にアップロード
+    ↓ ブログリポジトリにコミット
+    ↓ Cloudflare Pages で自動デプロイ
+```
+
+シンプルに言うと「GitHub Actionsが定期的にNotionをチェックして、新しい記事があったらブログに反映する」という仕組み。
+
+### 手順1: Cloudflare Pagesのセットアップ
+
+まずはブログのホスティング先を用意する。Cloudflare Pagesを選んだ理由は、
+
+- 無料枠が太い
+- デプロイが爆速
+- GitHubと連携が簡単
+
+Cloudflare Pagesのダッシュボードから「Create a project」→ GitHubリポジトリを接続。ビルドコマンドとか聞かれるので、
+
+- ビルドコマンド: `npm run build`
+- 出力ディレクトリ: `out` とか `.next` とか（フレームワークによる）
+
+を設定すればOK。これでmainブランチにプッシュするたびに自動デプロイされるようになった。
+
+### 手順2: Notion API の準備
+
+これは1日目でやったので割愛。Integration作って、データベースに接続権限を付与して、APIトークンを取得しておく。
+
+### 手順3: 同期スクリプトを書く
+
+Notionから記事を取得して、Markdownに変換して、画像をR2にアップして...というスクリプトを書く。これは2日目でやった内容をベースに、もうちょっと整理した。
+
+ポイントは、
+
+- `publish_status`が`ready`の記事だけ取得する
+- 既存の記事は更新日時をチェックして差分だけ処理
+- 画像URLをR2のURLに置換
+
+みたいな処理を入れておくと、実用的になる。
+
+### 手順4: GitHub Actionsのワークフロー作成
+
+`.github/workflows/sync-notion.yml`を作成。
+
+ポイントは、
+
+- `schedule`で定期実行（毎日9時でセットした）
+- `workflow_dispatch`で手動実行もできるようにしておく
+- 環境変数はGitHubのSecretsに登録しておく
+- 最後に差分があればコミット＆プッシュ
+
+これで、Notionで記事を書いて`publish_status`を`ready`にしておけば、毎日自動でブログに反映される。
+
+### 手順5: Secretsの登録
+
+GitHubリポジトリの Settings → Secrets and variables → Actions から以下を登録：
+
+- `NOTION_TOKEN`: Notion IntegrationのAPIトークン
+- `NOTION_DATABASE_ID`: 記事管理用データベースのID
+- `R2_ACCESS_KEY_ID`: Cloudflare R2のアクセスキー
+- `R2_SECRET_ACCESS_KEY`: R2のシークレットキー
+- `R2_BUCKET_NAME`: バケット名
+- `R2_ENDPOINT`: R2のエンドポイントURL
+
+## 動作確認
+
+1. Notionで記事を書く
+2. `publish_status`を`ready`に変更
+3. GitHub Actionsを手動実行（待てない人向け）
+4. ブログに記事が反映されてるか確認
+
+ちゃんと動いた！Notionで書いた記事がブログに表示されてる。画像もR2経由で読み込まれてて、期限切れの心配もない。
+
+# やってみて
+
+Notionを投稿のインターフェースにしつつ、無料で公開できたのは良かったと思う。正直ブログをわざわざ自分で作る価値は特に最近はあまりないかもだが、賃貸より自分の家建てるほうが楽しいよねくらいの感覚で実益は度外視で作ってみた。楽しかったので良かった。
+
+このブログに今後の記事や、成果物を載せていきつつ、いろんな活動報告に使っていきます。よろしくお願いいたします。

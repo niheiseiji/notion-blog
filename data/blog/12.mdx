@@ -2,11 +2,11 @@
 title: 'Notionで記事を書いて自分のブログに自動で公開したい(1日目)'
 date: '2025-10-25'
 tags: ['Notion', 'Notion API']
-lastmod: '2025-12-17'
+lastmod: '2025-12-20'
 draft: false
 authors: ['nihei-seiji']
 layout: 'PostSimple'
-summary: 'Notionをインターフェースにしたブログの実装。'
+summary: 'Notionで書いた記事をAPI経由で取得し、Markdown化して無料ブログ公開する仕組みを検証した記録'
 ---
 
 # なにがしたいのか
@@ -15,7 +15,7 @@ NotionのUIはすばらしくブログ記事を書くのにピッタリである
 
 お金がもったいないので全部無料でブログ公開をできる仕組みを構築していく。ざっくりしたイメージはこんな感じ。
 
-![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974072010_zj1wof1yq78.jpg)
+![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282166521_213v2vkfjaa.jpg)
 
 # Notion執筆記事をマークダウンにするまで
 
@@ -25,15 +25,15 @@ NotionのUIはすばらしくブログ記事を書くのにピッタリである
 
 Notionは外部アプリケーション接続用にIntegrationというをモジュールを作る必要がある。今回は「private API integration」を新たに作った。
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974073322_xg82fyfqtjd.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282170156_1n0c9d6cz5j.png)
 
 とりあえずこんなDBを作ってみた
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974073856_catqy2pltzm.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282171835_sknuzjhpjp8.png)
 
 テスト用の個別のページはタイトルとその他プロパティ、本文で構成してみた。本文にはいくつかの種類のタグを用意してみた。
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974074262_jdc5yibboi.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282172917_bx3rclmlkyc.png)
 
 さっそく取得APIを叩いてみる。実際にはフィルタを調整してpublish_status=readyの記事だけ取得するようにすれば投稿準備ができた記事をフィルタできる。
 
@@ -542,7 +542,7 @@ $ node index.mjs
 
 ちゃんとmarkdownになっとる
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1765974075034_bivmcnczm9s.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282174184_d7tf9mg0pm.png)
 
 # 宿題事項
 
