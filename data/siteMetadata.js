@@ -8,7 +8,7 @@ const siteMetadata = {
   theme: 'dark', // system, dark or light
   siteUrl: 'https://niheitechblog.vercel.app',
   siteRepo: 'https://github.com/niheiseiji/notion-blog',
-  siteLogo: '/static/images/dots/mousu1.gif',
+  siteLogo: '/static/images/dots/chu_winter.png',
   socialBanner: '/static/images/twitter-card.png',
   email: 'nihei.seiji.office@gmail.com',
   github: 'https://github.com/niheiseiji',
