@@ -1,13 +1,8 @@
 ---
 title: 'Notionで記事を書いて自分のブログに自動で公開したい(1日目)'
 date: '2025-10-25'
-sort: 1
 tags: ['Notion', 'Notion API']
-<<<<<<< HEAD
-lastmod: '2025-12-20'
-=======
 lastmod: '2025-12-22'
->>>>>>> 7a31085 (refactor: replace sortPosts utility with sortPostsBySort for consistent post sorting and update contentlayer configuration to include sort field)
 draft: false
 authors: ['nihei-seiji']
 layout: 'PostSimple'
@@ -20,11 +15,7 @@ NotionのUIはすばらしくブログ記事を書くのにピッタリである
 
 お金がもったいないので全部無料でブログ公開をできる仕組みを構築していく。ざっくりしたイメージはこんな感じ。
 
-<<<<<<< HEAD
-![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282166521_213v2vkfjaa.jpg)
-=======
-![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766366189304_tchnrpthzcl.jpg)
->>>>>>> 7a31085 (refactor: replace sortPosts utility with sortPostsBySort for consistent post sorting and update contentlayer configuration to include sort field)
+![1000001936.jpg](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766367116611_kbzon4t8fxn.jpg)
 
 # Notion執筆記事をマークダウンにするまで
 
@@ -34,27 +25,15 @@ NotionのUIはすばらしくブログ記事を書くのにピッタリである
 
 Notionは外部アプリケーション接続用にIntegrationというをモジュールを作る必要がある。今回は「private API integration」を新たに作った。
 
-<<<<<<< HEAD
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282170156_1n0c9d6cz5j.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766367119301_8mx3c5zlupy.png)
 
 とりあえずこんなDBを作ってみた
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282171835_sknuzjhpjp8.png)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766367120844_iqjq1cr8yzk.png)
 
 テスト用の個別のページはタイトルとその他プロパティ、本文で構成してみた。本文にはいくつかの種類のタグを用意してみた。
 
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282172917_bx3rclmlkyc.png)
-=======
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766366190109_aeo8zqmrkrq.png)
-
-とりあえずこんなDBを作ってみた
-
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766366190690_7jp1vrlgn9c.png)
-
-テスト用の個別のページはタイトルとその他プロパティ、本文で構成してみた。本文にはいくつかの種類のタグを用意してみた。
-
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766366191218_y2262smczm.png)
->>>>>>> 7a31085 (refactor: replace sortPosts utility with sortPostsBySort for consistent post sorting and update contentlayer configuration to include sort field)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766367122232_awqf9g4xvqs.png)
 
 さっそく取得APIを叩いてみる。実際にはフィルタを調整してpublish_status=readyの記事だけ取得するようにすれば投稿準備ができた記事をフィルタできる。
 
@@ -563,11 +542,7 @@ $ node index.mjs
 
 ちゃんとmarkdownになっとる
 
-<<<<<<< HEAD
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766282174184_d7tf9mg0pm.png)
-=======
-![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766366192124_arsacglmcv.png)
->>>>>>> 7a31085 (refactor: replace sortPosts utility with sortPostsBySort for consistent post sorting and update contentlayer configuration to include sort field)
+![image.png](https://pub-b95f33ff68ca4b8fb78cd87d8d40206f.r2.dev/notion-images/notion_1766367123836_ooa6wr2rtl.png)
 
 # 宿題事項
 
