@@ -1,9 +1,10 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToCoreMessages, streamText } from 'ai'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 import { allBlogs } from 'contentlayer/generated'
 import { allCoreContent } from 'pliny/utils/contentlayer'
+import chuPrompt from '../../../data/chu-prompt.md?raw'
+
+export const runtime = 'edge'
 
 interface BlogPostInfo {
   id: string
@@ -43,11 +44,8 @@ export async function POST(req: Request) {
 
   const coreMessages = convertToCoreMessages(messages)
 
-  const promptPath = join(process.cwd(), 'data', 'chu-prompt.md')
-  let chuSystemPrompt = readFileSync(promptPath, 'utf-8').trim()
-
   const allPostsInfo = buildAllPostsInfo()
-  chuSystemPrompt = chuSystemPrompt.replace('{{ALL_POSTS_INFO}}', allPostsInfo)
+  const chuSystemPrompt = chuPrompt.replace('{{ALL_POSTS_INFO}}', allPostsInfo)
 
   const lastUserMessage = messages
     .filter((msg: { role: string }) => msg.role === 'user')
