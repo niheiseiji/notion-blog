@@ -6,13 +6,72 @@ import { X, Send, Loader2 } from 'lucide-react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 
+function renderMarkdownLinks(text: string): (string | JSX.Element)[] {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const parts: (string | JSX.Element)[] = []
+  let lastIndex = 0
+  let match
+  let keyIndex = 0
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index))
+    }
+    parts.push(
+      <a
+        key={`link-${keyIndex++}`}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 dark:text-blue-400 hover:underline"
+      >
+        {match[1]}
+      </a>
+    )
+    lastIndex = linkRegex.lastIndex
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : [text]
+}
+
+const CHAT_STORAGE_KEY = 'chu-chat-messages'
+
 const MouseFloatButton = () => {
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const { messages, sendMessage, status } = useChat({
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
   })
+
+  useEffect(() => {
+    if (!isInitialized) {
+      const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY)
+      if (savedMessages) {
+        try {
+          const parsed = JSON.parse(savedMessages)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed)
+          }
+        } catch (e) {
+          console.error('Failed to parse saved messages:', e)
+        }
+      }
+      setIsInitialized(true)
+    }
+  }, [isInitialized, setMessages])
+
+  useEffect(() => {
+    if (isInitialized && messages.length > 0) {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+    }
+  }, [messages, isInitialized])
 
   const [input, setInput] = useState('')
   const isLoading = status === 'streaming' || status === 'submitted'
@@ -108,12 +167,123 @@ const MouseFloatButton = () => {
                       : 'bg-gray-200 dark:bg-zinc-700 text-gray-900 dark:text-white'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.parts
-                      .filter((part) => part.type === 'text')
-                      .map((part) => (part as { type: 'text'; text: string }).text)
-                      .join('')}
-                  </p>
+                  <div className="text-sm whitespace-pre-wrap">
+                    {(() => {
+                      const textParts = message.parts
+                        .filter((part) => part.type === 'text')
+                        .map((part) => (part as { type: 'text'; text: string }).text)
+
+                      const fullText = textParts.join('')
+                      console.log('[DEBUG] Full combined message text:', JSON.stringify(fullText))
+                      console.log('[DEBUG] Text length:', fullText.length)
+                      console.log('[DEBUG] Number of parts:', textParts.length)
+
+                      const relatedPostsRegex = /<RELATED_POSTS>\s*([\s\S]*?)\s*<\/RELATED_POSTS>/g
+                      const parts: (string | JSX.Element)[] = []
+                      let lastIndex = 0
+                      const matches: RegExpExecArray[] = []
+                      let match
+
+                      while ((match = relatedPostsRegex.exec(fullText)) !== null) {
+                        console.log('[DEBUG] Found match:', {
+                          fullMatch: match[0],
+                          jsonContent: match[1],
+                          index: match.index,
+                          length: match[0].length,
+                        })
+                        matches.push(match)
+                      }
+
+                      console.log('[DEBUG] Total matches found:', matches.length)
+
+                      matches.forEach((match, matchIndex) => {
+                        if (match.index > lastIndex) {
+                          const beforeText = fullText.substring(lastIndex, match.index)
+                          parts.push(...renderMarkdownLinks(beforeText))
+                        }
+
+                        try {
+                          let jsonText = match[1].trim()
+                          console.log(
+                            '[DEBUG] Raw JSON text before processing:',
+                            JSON.stringify(jsonText)
+                          )
+                          jsonText = jsonText.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ')
+                          console.log('[DEBUG] Processed JSON text:', JSON.stringify(jsonText))
+                          const jsonData = JSON.parse(jsonText)
+                          console.log('[DEBUG] Parsed JSON data:', jsonData)
+                          if (
+                            jsonData.posts &&
+                            Array.isArray(jsonData.posts) &&
+                            jsonData.posts.length > 0
+                          ) {
+                            parts.push(
+                              <div
+                                key={`related-${matchIndex}`}
+                                className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-600"
+                              >
+                                <div className="font-semibold mb-2">関連記事:</div>
+                                <ul className="list-disc list-inside space-y-1">
+                                  {jsonData.posts
+                                    .map((post: { id?: string; title?: string }, idx: number) => {
+                                      if (!post.id || !post.title) {
+                                        console.warn('Invalid post data:', post)
+                                        return null
+                                      }
+                                      const url = `/blog/${post.id}`
+                                      return (
+                                        <li key={idx}>
+                                          <a
+                                            href={url}
+                                            className="text-blue-600 dark:text-blue-400 hover:underline"
+                                          >
+                                            {post.title}
+                                          </a>
+                                        </li>
+                                      )
+                                    })
+                                    .filter(Boolean)}
+                                </ul>
+                              </div>
+                            )
+                          } else {
+                            console.warn('Invalid posts data structure:', jsonData)
+                          }
+                        } catch (e) {
+                          console.error('Failed to parse related posts JSON:', e)
+                          console.error('JSON text:', match[1].trim())
+                          parts.push(
+                            <span key={`error-${matchIndex}`} className="text-red-500 text-xs">
+                              (関連記事の表示に失敗しました)
+                            </span>
+                          )
+                        }
+
+                        lastIndex = match.index + match[0].length
+                      })
+
+                      if (lastIndex < fullText.length) {
+                        const remainingText = fullText.substring(lastIndex)
+                        console.log(
+                          '[DEBUG] Remaining text after matches:',
+                          JSON.stringify(remainingText)
+                        )
+                        parts.push(...renderMarkdownLinks(remainingText))
+                      }
+
+                      console.log('[DEBUG] Final parts count:', parts.length)
+
+                      if (matches.length === 0) {
+                        return <div>{renderMarkdownLinks(fullText)}</div>
+                      }
+
+                      return parts.length > 0 ? (
+                        <div>{parts}</div>
+                      ) : (
+                        <div>{renderMarkdownLinks(fullText)}</div>
+                      )
+                    })()}
+                  </div>
                 </div>
               </div>
             ))
