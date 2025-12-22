@@ -4,7 +4,7 @@ import 'katex/dist/katex.css'
 import PageTitle from '@/components/PageTitle'
 import { components } from '@/components/MDXComponents'
 import { MDXLayoutRenderer } from 'pliny/mdx-components'
-import { sortPosts, coreContent } from 'pliny/utils/contentlayer'
+import { coreContent } from 'pliny/utils/contentlayer'
 import { allBlogs, allAuthors } from 'contentlayer/generated'
 import type { Authors, Blog } from 'contentlayer/generated'
 import PostSimple from '@/layouts/PostSimple'
@@ -12,6 +12,7 @@ import PostLayout from '@/layouts/PostLayout'
 import PostBanner from '@/layouts/PostBanner'
 import { Metadata } from 'next'
 import siteMetadata from '@/data/siteMetadata'
+import { sortPostsBySort } from '@/lib/utils'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const defaultLayout = 'PostLayout'
@@ -82,7 +83,7 @@ export const generateStaticParams = async () => {
 
 export default async function Page({ params }: { params: { slug: string[] } }) {
   const slug = decodeURI(params.slug.join('/'))
-  const sortedPosts = sortPosts(allBlogs) as Blog[]
+  const sortedPosts = sortPostsBySort(allBlogs) as Blog[]
   const postIndex = sortedPosts.findIndex((p) => p.slug === slug)
   const prev = coreContent(sortedPosts[postIndex + 1])
   const next = coreContent(sortedPosts[postIndex - 1])
