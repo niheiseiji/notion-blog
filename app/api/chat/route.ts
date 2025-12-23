@@ -1,8 +1,9 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { convertToCoreMessages, streamText } from 'ai'
-import { allBlogs } from 'contentlayer/generated'
+import { allBlogs, allAuthors } from 'contentlayer/generated'
 import { allCoreContent } from 'pliny/utils/contentlayer'
 import chuPrompt from '../../../data/chu-prompt.md?raw'
+import { buildPageMetaList } from '@/lib/navigation/pageMeta'
 
 export const runtime = 'edge'
 
@@ -30,6 +31,49 @@ function buildAllPostsInfo(): string {
     .join('\n\n')
 }
 
+function buildAboutPageInfo(): string {
+  const author = allAuthors.find((p) => p.slug === 'nihei-seiji')
+  if (!author) {
+    return ''
+  }
+
+  const info: string[] = []
+  info.push(`名前: ${author.name}`)
+  if (author.occupation) {
+    info.push(`職業: ${author.occupation}`)
+  }
+  if (author.company) {
+    info.push(`会社: ${author.company}`)
+  }
+  if (author.email) {
+    info.push(`メール: ${author.email}`)
+  }
+  if (author.github) {
+    info.push(`GitHub: ${author.github}`)
+  }
+  if (author.linkedin) {
+    info.push(`LinkedIn: ${author.linkedin}`)
+  }
+
+  const bodyText = author.body.raw
+    .replace(/^---[\s\S]*?---\n/, '')
+    .replace(/import[^;]*;/g, '')
+    .replace(/<FamiliarTechStack[^>]*\/>/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\{[^}]+\}/g, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]+`/g, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith('#'))
+    .join('\n')
+    .trim()
+
+  info.push(`\n内容:\n${bodyText}`)
+
+  return info.join('\n')
+}
+
 export async function POST(req: Request) {
   const { messages } = await req.json()
 
@@ -43,9 +87,15 @@ export async function POST(req: Request) {
   })
 
   const coreMessages = convertToCoreMessages(messages)
-
+  const pageMetaList = buildPageMetaList()
   const allPostsInfo = buildAllPostsInfo()
-  const chuSystemPrompt = chuPrompt.replace('{{ALL_POSTS_INFO}}', allPostsInfo)
+  const aboutPageInfo = buildAboutPageInfo()
+  let chuSystemPrompt = chuPrompt.replace('{{ALL_POSTS_INFO}}', allPostsInfo)
+  chuSystemPrompt = chuSystemPrompt.replace('{{ABOUT_PAGE_INFO}}', aboutPageInfo)
+  chuSystemPrompt = chuSystemPrompt.replace(
+    '{{PAGE_META_JSON}}',
+    JSON.stringify(pageMetaList, null, 2)
+  )
 
   const lastUserMessage = messages
     .filter((msg: { role: string }) => msg.role === 'user')

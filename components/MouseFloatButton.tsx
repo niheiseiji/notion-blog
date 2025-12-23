@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { X, Send, Loader2 } from 'lucide-react'
+import { X, Send } from 'lucide-react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import { useRouter } from 'next/navigation'
+import type { PageMeta } from '@/lib/navigation/pageMeta'
 
 function renderMarkdownLinks(text: string): (string | JSX.Element)[] {
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
@@ -43,12 +45,31 @@ const CHAT_STORAGE_KEY = 'chu-chat-messages'
 const MouseFloatButton = () => {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [pageMetaList, setPageMetaList] = useState<PageMeta[]>([])
+  const [lastHandledMessageId, setLastHandledMessageId] = useState<string | null>(null)
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
   })
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadPageMetaList = async () => {
+      try {
+        const response = await fetch('/api/navigation/page-meta')
+        if (!response.ok) {
+          return
+        }
+        const data = (await response.json()) as PageMeta[]
+        setPageMetaList(data)
+      } catch {
+        // ignore
+      }
+    }
+    loadPageMetaList()
+  }, [])
 
   useEffect(() => {
     if (!isInitialized) {
@@ -84,6 +105,43 @@ const MouseFloatButton = () => {
   useEffect(() => {
     scrollToBottom()
   }, [messages, isLoading])
+
+  useEffect(() => {
+    if (pageMetaList.length === 0) {
+      return
+    }
+    const lastAssistantMessage = [...messages]
+      .reverse()
+      .find((message) => message.role === 'assistant')
+    if (!lastAssistantMessage || lastAssistantMessage.id === lastHandledMessageId) {
+      return
+    }
+    const textParts = lastAssistantMessage.parts
+      .filter((part) => part.type === 'text')
+      .map((part) => (part as { type: 'text'; text: string }).text)
+    const fullText = textParts.join('')
+    const navigationRegex = /<NAVIGATION>\s*([\s\S]*?)\s*<\/NAVIGATION>/g
+    const match = navigationRegex.exec(fullText)
+    if (match) {
+      try {
+        const jsonText = match[1].trim()
+        const parsed = JSON.parse(jsonText) as {
+          action: string
+          path?: string
+          reason?: string
+        }
+        if (parsed.action === 'navigate' && parsed.path) {
+          const targetPage = pageMetaList.find((page) => page.path === parsed.path)
+          if (targetPage) {
+            router.push(parsed.path)
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+    }
+    setLastHandledMessageId(lastAssistantMessage.id)
+  }, [messages, pageMetaList, lastHandledMessageId, router])
 
   const handleClick = () => {
     setIsChatOpen((prev) => !prev)
@@ -174,89 +232,107 @@ const MouseFloatButton = () => {
                         .map((part) => (part as { type: 'text'; text: string }).text)
 
                       const fullText = textParts.join('')
-                      console.log('[DEBUG] Full combined message text:', JSON.stringify(fullText))
-                      console.log('[DEBUG] Text length:', fullText.length)
-                      console.log('[DEBUG] Number of parts:', textParts.length)
 
-                      const relatedPostsRegex = /<RELATED_POSTS>\s*([\s\S]*?)\s*<\/RELATED_POSTS>/g
                       const parts: (string | JSX.Element)[] = []
                       let lastIndex = 0
-                      const matches: RegExpExecArray[] = []
+
+                      const navigationRegex = /<NAVIGATION>\s*([\s\S]*?)\s*<\/NAVIGATION>/g
+                      const navigationMatches: RegExpExecArray[] = []
                       let match
 
-                      while ((match = relatedPostsRegex.exec(fullText)) !== null) {
-                        console.log('[DEBUG] Found match:', {
-                          fullMatch: match[0],
-                          jsonContent: match[1],
-                          index: match.index,
-                          length: match[0].length,
-                        })
-                        matches.push(match)
+                      while ((match = navigationRegex.exec(fullText)) !== null) {
+                        navigationMatches.push(match)
                       }
 
-                      console.log('[DEBUG] Total matches found:', matches.length)
+                      const relatedPostsRegex = /<RELATED_POSTS>\s*([\s\S]*?)\s*<\/RELATED_POSTS>/g
+                      const relatedPostsMatches: RegExpExecArray[] = []
+                      while ((match = relatedPostsRegex.exec(fullText)) !== null) {
+                        relatedPostsMatches.push(match)
+                      }
 
-                      matches.forEach((match, matchIndex) => {
+                      const allMatches = [...navigationMatches, ...relatedPostsMatches].sort(
+                        (a, b) => a.index - b.index
+                      )
+
+                      allMatches.forEach((match, matchIndex) => {
                         if (match.index > lastIndex) {
                           const beforeText = fullText.substring(lastIndex, match.index)
                           parts.push(...renderMarkdownLinks(beforeText))
                         }
 
-                        try {
-                          let jsonText = match[1].trim()
-                          console.log(
-                            '[DEBUG] Raw JSON text before processing:',
-                            JSON.stringify(jsonText)
-                          )
-                          jsonText = jsonText.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ')
-                          console.log('[DEBUG] Processed JSON text:', JSON.stringify(jsonText))
-                          const jsonData = JSON.parse(jsonText)
-                          console.log('[DEBUG] Parsed JSON data:', jsonData)
-                          if (
-                            jsonData.posts &&
-                            Array.isArray(jsonData.posts) &&
-                            jsonData.posts.length > 0
-                          ) {
-                            parts.push(
-                              <div
-                                key={`related-${matchIndex}`}
-                                className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-600"
-                              >
-                                <div className="font-semibold mb-2">関連記事:</div>
-                                <ul className="list-disc list-inside space-y-1">
-                                  {jsonData.posts
-                                    .map((post: { id?: string; title?: string }, idx: number) => {
-                                      if (!post.id || !post.title) {
-                                        console.warn('Invalid post data:', post)
-                                        return null
-                                      }
-                                      const url = `/blog/${post.id}`
-                                      return (
-                                        <li key={idx}>
-                                          <a
-                                            href={url}
-                                            className="text-blue-600 dark:text-blue-400 hover:underline"
-                                          >
-                                            {post.title}
-                                          </a>
-                                        </li>
-                                      )
-                                    })
-                                    .filter(Boolean)}
-                                </ul>
-                              </div>
-                            )
-                          } else {
-                            console.warn('Invalid posts data structure:', jsonData)
+                        if (match[0].includes('<NAVIGATION>')) {
+                          try {
+                            const jsonText = match[1].trim()
+                            const jsonData = JSON.parse(jsonText) as {
+                              action: string
+                              path?: string
+                              reason?: string
+                            }
+                            if (jsonData.action === 'navigate' && jsonData.path) {
+                              const targetPage = pageMetaList.find(
+                                (page) => page.path === jsonData.path
+                              )
+                              if (targetPage) {
+                                parts.push(
+                                  <div
+                                    key={`nav-${matchIndex}`}
+                                    className="mt-3 pt-3 border-t border-gray-300 dark:border-zinc-600"
+                                  >
+                                    <a
+                                      href={jsonData.path}
+                                      className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                    >
+                                      {targetPage.title} へ移動 →
+                                    </a>
+                                  </div>
+                                )
+                              }
+                            }
+                          } catch {
+                            // ignore parse errors
                           }
-                        } catch (e) {
-                          console.error('Failed to parse related posts JSON:', e)
-                          console.error('JSON text:', match[1].trim())
-                          parts.push(
-                            <span key={`error-${matchIndex}`} className="text-red-500 text-xs">
-                              (関連記事の表示に失敗しました)
-                            </span>
-                          )
+                        } else if (match[0].includes('<RELATED_POSTS>')) {
+                          try {
+                            let jsonText = match[1].trim()
+                            jsonText = jsonText.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ')
+                            const jsonData = JSON.parse(jsonText)
+                            if (
+                              jsonData.posts &&
+                              Array.isArray(jsonData.posts) &&
+                              jsonData.posts.length > 0
+                            ) {
+                              parts.push(
+                                <div
+                                  key={`related-${matchIndex}`}
+                                  className="mt-4 pt-4 border-t border-gray-300 dark:border-zinc-600"
+                                >
+                                  <div className="font-semibold mb-2">関連記事:</div>
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {jsonData.posts
+                                      .map((post: { id?: string; title?: string }, idx: number) => {
+                                        if (!post.id || !post.title) {
+                                          return null
+                                        }
+                                        const url = `/blog/${post.id}`
+                                        return (
+                                          <li key={idx}>
+                                            <a
+                                              href={url}
+                                              className="text-blue-600 dark:text-blue-400 hover:underline"
+                                            >
+                                              {post.title}
+                                            </a>
+                                          </li>
+                                        )
+                                      })
+                                      .filter(Boolean)}
+                                  </ul>
+                                </div>
+                              )
+                            }
+                          } catch {
+                            // ignore parse errors
+                          }
                         }
 
                         lastIndex = match.index + match[0].length
@@ -264,17 +340,7 @@ const MouseFloatButton = () => {
 
                       if (lastIndex < fullText.length) {
                         const remainingText = fullText.substring(lastIndex)
-                        console.log(
-                          '[DEBUG] Remaining text after matches:',
-                          JSON.stringify(remainingText)
-                        )
                         parts.push(...renderMarkdownLinks(remainingText))
-                      }
-
-                      console.log('[DEBUG] Final parts count:', parts.length)
-
-                      if (matches.length === 0) {
-                        return <div>{renderMarkdownLinks(fullText)}</div>
                       }
 
                       return parts.length > 0 ? (
