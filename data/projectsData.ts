@@ -9,12 +9,12 @@ interface ProjectDataProps {
 
 const projectsData: ProjectDataProps[] = [
   {
-    title: 'Corgi-AI: Create anything with AI',
-    description: 
-      'Corgi AI is a collection of AI tools for different usecases. It includes a chatGPT clone with streaming responses, Image Generation, Audio Generation, Image Restoration and PDF Chat(beta). It is a full fledged SaaS application with stripe payments. It is Deployed using Docker with a VPS hosting on fly.io',
-    href: 'https://corgi-ai.fly.dev',
-    imgSrc: '/static/images/corgi-ai-dashboard.png',
-    techStack: ['Svelte', 'TypeScript', 'PostgreSQL', 'Docker', 'Drizzle'],
+    title: 'Nihei Tech Blog',
+    description:
+      'このサイトです！Next.js 14 (App Router) と TypeScript で構築した個人テックブログ。Notionで記事を書いて自動で公開できる仕組みや、ブログ内に潜むAIネズミ「チュウ」との対話機能など、実験的な機能を実装中。技術的な知見やプロジェクトの進捗を発信しています。',
+    href: 'https://niheiseiji.jp/',
+    imgSrc: '/static/images/dots/chu_winter.png',
+    techStack: ['NextJS', 'TypeScript', 'React', 'OpenAI'],
   },
 ]
 

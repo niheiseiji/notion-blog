@@ -8,36 +8,134 @@ import { DefaultChatTransport } from 'ai'
 import { useRouter } from 'next/navigation'
 import type { PageMeta } from '@/lib/navigation/pageMeta'
 
-function renderMarkdownLinks(text: string): (string | JSX.Element)[] {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
-  const parts: (string | JSX.Element)[] = []
-  let lastIndex = 0
-  let match
+function renderMarkdown(text: string): (string | JSX.Element)[] {
+  const lines = text.split('\n')
+  const result: (string | JSX.Element)[] = []
   let keyIndex = 0
+  let inList = false
+  let listItems: string[] = []
 
-  while ((match = linkRegex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.substring(lastIndex, match.index))
+  const processInlineMarkdown = (line: string): (string | JSX.Element)[] => {
+    const parts: (string | JSX.Element)[] = []
+    let lastIndex = 0
+    let match
+
+    const boldRegex = /\*\*([^*]+)\*\*/g
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+
+    const allMatches: Array<{
+      index: number
+      length: number
+      type: 'bold' | 'link'
+      data: RegExpExecArray
+    }> = []
+
+    while ((match = boldRegex.exec(line)) !== null) {
+      allMatches.push({
+        index: match.index,
+        length: match[0].length,
+        type: 'bold',
+        data: match,
+      })
     }
-    parts.push(
-      <a
-        key={`link-${keyIndex++}`}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 dark:text-blue-400 hover:underline"
+
+    while ((match = linkRegex.exec(line)) !== null) {
+      allMatches.push({
+        index: match.index,
+        length: match[0].length,
+        type: 'link',
+        data: match,
+      })
+    }
+
+    allMatches.sort((a, b) => a.index - b.index)
+
+    allMatches.forEach((matchInfo) => {
+      if (matchInfo.index > lastIndex) {
+        parts.push(line.substring(lastIndex, matchInfo.index))
+      }
+
+      if (matchInfo.type === 'bold') {
+        parts.push(
+          <strong key={`bold-${keyIndex++}`} className="font-semibold">
+            {matchInfo.data[1]}
+          </strong>
+        )
+      } else if (matchInfo.type === 'link') {
+        parts.push(
+          <a
+            key={`link-${keyIndex++}`}
+            href={matchInfo.data[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            {matchInfo.data[1]}
+          </a>
+        )
+      }
+
+      lastIndex = matchInfo.index + matchInfo.length
+    })
+
+    if (lastIndex < line.length) {
+      parts.push(line.substring(lastIndex))
+    }
+
+    return parts.length > 0 ? parts : [line]
+  }
+
+  lines.forEach((line, lineIndex) => {
+    const trimmedLine = line.trim()
+    const isListItem = trimmedLine.startsWith('- ')
+
+    if (isListItem) {
+      if (!inList) {
+        inList = true
+        listItems = []
+      }
+      const itemText = trimmedLine.substring(2)
+      listItems.push(itemText)
+    } else {
+      if (inList && listItems.length > 0) {
+        result.push(
+          <ul
+            key={`list-${keyIndex++}`}
+            className="list-disc list-inside space-y-0.5 my-1 ml-2 text-sm"
+          >
+            {listItems.map((item, idx) => (
+              <li key={idx}>{processInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        )
+        listItems = []
+        inList = false
+      }
+
+      if (trimmedLine.length > 0) {
+        result.push(
+          <div key={`line-${keyIndex++}`} className="my-1">
+            {processInlineMarkdown(trimmedLine)}
+          </div>
+        )
+      }
+    }
+  })
+
+  if (inList && listItems.length > 0) {
+    result.push(
+      <ul
+        key={`list-${keyIndex++}`}
+        className="list-disc list-inside space-y-0.5 my-1 ml-2 text-sm"
       >
-        {match[1]}
-      </a>
+        {listItems.map((item, idx) => (
+          <li key={idx}>{processInlineMarkdown(item)}</li>
+        ))}
+      </ul>
     )
-    lastIndex = linkRegex.lastIndex
   }
 
-  if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex))
-  }
-
-  return parts.length > 0 ? parts : [text]
+  return result.length > 0 ? result : [text]
 }
 
 const CHAT_STORAGE_KEY = 'chu-chat-messages'
@@ -225,7 +323,7 @@ const MouseFloatButton = () => {
                       : 'bg-gray-200 dark:bg-zinc-700 text-gray-900 dark:text-white'
                   }`}
                 >
-                  <div className="text-sm whitespace-pre-wrap">
+                  <div className="text-sm">
                     {(() => {
                       const textParts = message.parts
                         .filter((part) => part.type === 'text')
@@ -257,7 +355,7 @@ const MouseFloatButton = () => {
                       allMatches.forEach((match, matchIndex) => {
                         if (match.index > lastIndex) {
                           const beforeText = fullText.substring(lastIndex, match.index)
-                          parts.push(...renderMarkdownLinks(beforeText))
+                          parts.push(...renderMarkdown(beforeText))
                         }
 
                         if (match[0].includes('<NAVIGATION>')) {
@@ -340,13 +438,13 @@ const MouseFloatButton = () => {
 
                       if (lastIndex < fullText.length) {
                         const remainingText = fullText.substring(lastIndex)
-                        parts.push(...renderMarkdownLinks(remainingText))
+                        parts.push(...renderMarkdown(remainingText))
                       }
 
                       return parts.length > 0 ? (
                         <div>{parts}</div>
                       ) : (
-                        <div>{renderMarkdownLinks(fullText)}</div>
+                        <div>{renderMarkdown(fullText)}</div>
                       )
                     })()}
                   </div>
