@@ -295,6 +295,7 @@ const MouseFloatButton = () => {
               height={24}
               className="object-contain rounded-full"
             />
+            <span className="font-medium text-gray-900 dark:text-white">???</span>
           </div>
           <button
             onClick={handleClick}
